@@ -1,4 +1,7 @@
 /**
+ * Forked by Josh Espinosa (https://github.com/Hauuguu/GoogleNexusWebsiteMenu)
+ * Additions: Ability to auto-hide menu when mouse leaves, locks when something is clicked until user clicks out.
+ * 
  * gnmenu.js v1.0.0
  * http://www.codrops.com
  *
@@ -29,6 +32,7 @@
 			this.trigger = this.el.querySelector( 'a.gn-icon-menu' );
 			this.menu = this.el.querySelector( 'nav.gn-menu-wrapper' );
 			this.isMenuOpen = false;
+			this.autohide = true;
 			this.eventtype = mobilecheck() ? 'touchstart' : 'click';
 			this._initEvents();
 
@@ -41,6 +45,12 @@
 		_initEvents : function() {
 			var self = this;
 
+			var autoHideFn = function(ev){
+				if (self.autohide){
+					self._closeMenu();
+				}
+			};
+
 			if( !mobilecheck() ) {
 				this.trigger.addEventListener( 'mouseover', function(ev) { self._openIconMenu(); } );
 				this.trigger.addEventListener( 'mouseout', function(ev) { self._closeIconMenu(); } );
@@ -49,20 +59,27 @@
 					self._openMenu(); 
 					document.addEventListener( self.eventtype, self.bodyClickFn ); 
 				} );
+
+				this.menu.addEventListener( 'mouseleave', autoHideFn );
 			}
 			this.trigger.addEventListener( this.eventtype, function( ev ) {
 				ev.stopPropagation();
 				ev.preventDefault();
 				if( self.isMenuOpen ) {
 					self._closeMenu();
+					self.autohide = true;
 					document.removeEventListener( self.eventtype, self.bodyClickFn );
 				}
 				else {
 					self._openMenu();
+					self.autohide = false;
 					document.addEventListener( self.eventtype, self.bodyClickFn );
 				}
 			} );
-			this.menu.addEventListener( this.eventtype, function(ev) { ev.stopPropagation(); } );
+			this.menu.addEventListener( this.eventtype, function(ev) { 
+				ev.stopPropagation(); 
+				self.autohide = false;
+			} );
 		},
 		_openIconMenu : function() {
 			classie.add( this.menu, 'gn-open-part' );
